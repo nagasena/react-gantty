@@ -32,11 +32,6 @@ $handle-color: #ddd !default;
     .row-line {
         stroke: $light-border-color;
     }
-    .month-header {
-        fill: #f2f7fd;
-        stroke: $border-color;
-        stroke-width: 1.4;
-    }
     .tick {
         stroke: $border-color;
         stroke-width: 0.2;

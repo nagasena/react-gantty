@@ -1,0 +1,39 @@
+body {
+    margin: 40px;
+}
+
+.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-gap: 0;
+    background-color: #f0f2f3; // #fff;
+    color: #444;
+}
+
+.box {
+    background-color: #444;
+    border-right: 1px solid red;
+    color: #fff;
+    // border-radius: 5px;
+    padding: 20px;
+    font-size: 150%;
+}
+
+.box-task {
+    background-color: #444;
+    border-right: 1px solid red;
+    color: #fff;
+    // border-radius: 5px;
+    padding: 20px;
+    font-size: 150%;
+    height: 80px;
+}
+
+// .a,
+// .b,
+// .c,
+// .d,
+// .e,
+// .f {
+//     width: 40px;
+// }

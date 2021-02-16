@@ -6,7 +6,7 @@ const MINUTE = 'minute';
 const SECOND = 'second';
 const MILLISECOND = 'millisecond';
 
-export const month_names = {
+const month_names = {
     en: [
         'January',
         'February',
@@ -180,31 +180,6 @@ const date = {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
         return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-    },
-
-    getWeekCountByMonth(year, month, fromMonday = true) {
-        // month_number is in the range 0..11
-        //     var firstDay = new Date(this.setDate(1)).getDay();
-        // var totalDays = new Date(year, month_number + 1, 0).getDate();
-        // return Math.ceil((firstDay + totalDays) / 7);
-
-        const first = new Date(year, month, 1);
-        const last = new Date(year, month + 1, 0);
-        let dayOfWeek = first.getDay();
-        if (fromMonday && dayOfWeek === 0) dayOfWeek = 7;
-        let days = dayOfWeek + last.getDate();
-        if (fromMonday) days -= 1;
-        return Math.ceil(days / 7);
-
-        // var firstOfMonth = new Date(year, month_number, 1);
-        // var lastOfMonth = new Date(year, month_number + 1, 0);
-
-        // var used = firstOfMonth.getDay() + lastOfMonth.getDate();
-        // if (firstOfMonth.getDay() === 0) {
-        //     used += 6;
-        // }
-
-        // return Math.ceil(used / 7);
     },
 
     format(date, format_string = 'YYYY-MM-DD HH:mm:ss.SSS', lang = 'en') {

@@ -77,8 +77,7 @@ export default class Gantt {
     setup_options(options) {
         const default_options = {
             header_height: 60,
-            column_width: 20,
-            month_width: 80,
+            column_width: 30,
             step: 24,
             view_modes: [...Object.values(VIEW_MODE)],
             bar_height: 20,
@@ -210,7 +209,7 @@ export default class Gantt {
     setup_dates() {
         this.setup_gantt_dates();
         this.setup_date_values();
-        this.setup_date_week_values();
+        this.setup_date_month_values();
     }
 
     setup_gantt_dates() {
@@ -230,22 +229,22 @@ export default class Gantt {
         this.gantt_end = date_utils.start_of(this.gantt_end, 'day');
 
         // add date padding on both sides
-        // if (this.view_is([VIEW_MODE.QUARTER_DAY, VIEW_MODE.HALF_DAY])) {
-        //     this.gantt_start = date_utils.add(this.gantt_start, -7, 'day');
-        //     this.gantt_end = date_utils.add(this.gantt_end, 7, 'day');
-        // } else if (this.view_is(VIEW_MODE.MONTH)) {
-        //     this.gantt_start = date_utils.start_of(this.gantt_start, 'year');
-        //     this.gantt_end = date_utils.add(this.gantt_end, 1, 'year');
-        // } else if (this.view_is(VIEW_MODE.YEAR)) {
-        //     this.gantt_start = date_utils.add(this.gantt_start, -2, 'year');
-        //     this.gantt_end = date_utils.add(this.gantt_end, 2, 'year');
-        // } else {
-        //     this.gantt_start = date_utils.add(this.gantt_start, -1, 'month');
-        //     this.gantt_end = date_utils.add(this.gantt_end, 1, 'month');
-        // }
-        // FIXME: Params
-        this.gantt_start = new Date(today.getFullYear(), 0, 1); // date_utils.add(this.gantt_start, -1, 'month');
-        this.gantt_end = new Date(today.getFullYear(), 5, 30); //  date_utils.add(this.gantt_end, 1, 'month');
+        if (this.view_is([VIEW_MODE.QUARTER_DAY, VIEW_MODE.HALF_DAY])) {
+            this.gantt_start = date_utils.add(this.gantt_start, -7, 'day');
+            this.gantt_end = date_utils.add(this.gantt_end, 7, 'day');
+        } else if (this.view_is(VIEW_MODE.MONTH)) {
+            this.gantt_start = date_utils.start_of(this.gantt_start, 'year');
+            this.gantt_end = date_utils.add(this.gantt_end, 1, 'year');
+        } else if (this.view_is(VIEW_MODE.YEAR)) {
+            this.gantt_start = date_utils.add(this.gantt_start, -2, 'year');
+            this.gantt_end = date_utils.add(this.gantt_end, 2, 'year');
+        } else {
+            // this.gantt_start = date_utils.add(this.gantt_start, -1, 'month');
+            // this.gantt_end = date_utils.add(this.gantt_end, 1, 'month');
+            // FIXME: Params
+            this.gantt_start = new Date(today.getFullYear(), 0, 1); // date_utils.add(this.gantt_start, -1, 'month');
+            this.gantt_end = new Date(today.getFullYear(), 5, 30); //  date_utils.add(this.gantt_end, 1, 'month');
+        }
     }
 
     setup_date_values() {
@@ -288,26 +287,6 @@ export default class Gantt {
         }
     }
 
-    setup_date_week_values() {
-        this.week_dates = [];
-        let cur_date = null;
-        // console.log('gantt_end = ', this.gantt_end);
-
-        while (cur_date === null || cur_date < this.gantt_end) {
-            if (!cur_date) {
-                cur_date = date_utils.clone(this.gantt_start);
-            } else {
-                cur_date = date_utils.add(
-                    cur_date,
-                    // this.options.step,
-                    24 * 7,
-                    'hour'
-                );
-            }
-            this.week_dates.push(cur_date);
-        }
-    }
-
     bind_events() {
         this.bind_grid_click();
         this.bind_bar_events();
@@ -341,9 +320,9 @@ export default class Gantt {
         this.make_grid_background();
         this.make_grid_rows();
         this.make_grid_header();
-        // this.make_grid_ticks();
-        // this.make_grid_month_ticks();
-        // this.make_grid_highlights();
+        this.make_grid_ticks();
+        this.make_grid_month_ticks();
+        this.make_grid_highlights();
     }
 
     make_grid_background() {
@@ -419,14 +398,6 @@ export default class Gantt {
             append_to: rows_layer, //this.layers.grid,
         });
 
-        // createSVG('rect', {
-        //     x1: 0,
-        //     y1: 30 + padding, //this.options.header_height - 30, // + row_height,
-        //     x2: row_width,
-        //     y2: 30 + padding, //this.options.header_height - 30, // + row_height,
-        //     class: 'row-line',
-        //     append_to: rows_layer,
-        // });
         createSVG('line', {
             x1: 0,
             y1: 30 + padding, //this.options.header_height - 30, // + row_height,
@@ -435,44 +406,6 @@ export default class Gantt {
             class: 'row-line',
             append_to: rows_layer,
         });
-
-        let new_month = 0;
-
-        for (let date of this.dates) {
-            const current_x = this.options.column_width * date.getMonth();
-            createSVG('rect', {
-                x: current_x,
-                y: 0,
-                width: this.options.column_width,
-                height: 30,
-                class: 'month-header',
-                append_to: rows_layer,
-            });
-
-            createSVG('text', {
-                x: current_x + this.options.column_width / 2,
-                y: 18,
-                innerHTML: date_utils.format(
-                    date,
-                    'MMMM',
-                    this.options.language
-                ),
-                class: 'lower-text',
-                dominantBaseline: 'middle',
-                textAnchor: 'middle',
-                append_to: this.layers.date,
-            });
-
-            // Vertical lines
-            createSVG('line', {
-                x1: current_x,
-                y1: 30, //this.options.header_height - 30, // + row_height,
-                x2: current_x,
-                y2: 186, //this.options.header_height - 30, // + row_height,
-                class: 'row-line',
-                append_to: rows_layer,
-            });
-        }
     }
 
     make_grid_ticks() {
@@ -529,14 +462,14 @@ export default class Gantt {
             }
             index += 1;
 
-            // if (this.view_is(VIEW_MODE.MONTH)) {
-            //     tick_x +=
-            //         (date_utils.get_days_in_month(date) *
-            //             this.options.column_width) /
-            //         30;
-            // } else {
-            tick_x += this.options.column_width;
-            // }
+            if (this.view_is(VIEW_MODE.MONTH)) {
+                tick_x +=
+                    (date_utils.get_days_in_month(date) *
+                        this.options.column_width) /
+                    30;
+            } else {
+                tick_x += this.options.column_width;
+            }
         }
     }
 
@@ -546,35 +479,75 @@ export default class Gantt {
     //     let tick_height =
     //         (this.options.bar_height + this.options.padding) *
     //         this.tasks.length;
-    //     // console.log(this.week_dates.map((d) => d.getMonth()));
-    //     let new_month = 0;
+    //     // let index = 1;
+    //     // let isTodaySet = false;
     //     for (let date of this.month_dates) {
     //         let tick_class = 'tick';
+    //         // thick tick for monday
+    //         if (this.view_is(VIEW_MODE.DAY) && date.getDate() === 1) {
+    //             tick_class += ' thick';
+    //         }
+    //         // thick ticks for quarters
     //         if (
     //             // this.view_is(VIEW_MODE.MONTH) &&
-    //             // (date.getMonth() + 1) % 3 === 0 &&
-    //             new_month === date.getMonth()
+    //             (date.getMonth() + 1) % 3 ===
+    //             0
     //         ) {
-    //             // console.log(new_month);
-    //             console.log('new_month = ', new_month);
-    //             console.log('nb days = ', date_utils.get_days_in_month(date));
     //             tick_class += ' thick-end-of-month';
-
-    //             tick_x +=
-    //                 (this.options.column_width / 7) *
-    //                 date_utils.get_days_in_month(date);
-    //             // (date_utils.get_days_in_month(date) *b
-    //             //     this.options.column_width) /
-    //             // 7;
-    //             createSVG('path', {
-    //                 d: `M ${tick_x} ${tick_y} v ${tick_height}`,
-    //                 class: tick_class,
-    //                 append_to: this.layers.grid,
-    //             });
-    //             new_month = date.getMonth() + 1;
     //         }
+    //         createSVG('path', {
+    //             d: `M ${tick_x} ${tick_y} v ${tick_height}`,
+    //             class: tick_class,
+    //             append_to: this.layers.grid,
+    //         });
+    //         // index += 1;
+    //         // this.options.step = 24 * 30;
+    //         // this.options.column_width = 120
+    //         tick_x += (date_utils.get_days_in_month(date) * 120) / 30;
+
+    //         // if (this.view_is(VIEW_MODE.MONTH)) {
+
+    //         // } else {
+    //         //     tick_x += this.options.column_width;
+    //         // }
     //     }
     // }
+
+    make_grid_month_ticks() {
+        let tick_x = 0;
+        let tick_y = this.options.header_height + this.options.padding / 2;
+        let tick_height =
+            (this.options.bar_height + this.options.padding) *
+            this.tasks.length;
+        console.log(this.month_dates.map((d) => d.getMonth()));
+        let new_month = 0;
+        for (let date of this.month_dates) {
+            let tick_class = 'tick';
+            if (
+                // this.view_is(VIEW_MODE.MONTH) &&
+                // (date.getMonth() + 1) % 3 === 0 &&
+                new_month === date.getMonth()
+            ) {
+                // console.log(new_month);
+                console.log('new_month = ', new_month);
+                console.log('nb days = ', date_utils.get_days_in_month(date));
+                tick_class += ' thick-end-of-month';
+
+                tick_x +=
+                    (this.options.column_width / 7) *
+                    date_utils.get_days_in_month(date);
+                // (date_utils.get_days_in_month(date) *b
+                //     this.options.column_width) /
+                // 7;
+                createSVG('path', {
+                    d: `M ${tick_x} ${tick_y} v ${tick_height}`,
+                    class: tick_class,
+                    append_to: this.layers.grid,
+                });
+                new_month = date.getMonth() + 1;
+            }
+        }
+    }
 
     make_grid_highlights() {
         // highlight today's date
@@ -606,8 +579,7 @@ export default class Gantt {
     make_dates() {
         // console.log(this.get_dates_to_draw());
 
-        // for (let date of this.get_dates_to_draw()) {
-        for (let date of this.get_week_dates_to_draw()) {
+        for (let date of this.get_dates_to_draw()) {
             createSVG('text', {
                 x: date.lower_x,
                 y: date.lower_y,
@@ -616,44 +588,34 @@ export default class Gantt {
                 append_to: this.layers.date,
             });
 
-            // if (date.upper_text) {
-            //     const $upper_text = createSVG('text', {
-            //         x: date.upper_x,
-            //         y: date.upper_y,
-            //         innerHTML: date.upper_text,
-            //         class: 'upper-text',
-            //         append_to: this.layers.date,
-            //     });
+            if (date.upper_text) {
+                const $upper_text = createSVG('text', {
+                    x: date.upper_x,
+                    y: date.upper_y,
+                    innerHTML: date.upper_text,
+                    class: 'upper-text',
+                    append_to: this.layers.date,
+                });
 
-            //     // remove out-of-bound dates
-            //     if (
-            //         $upper_text.getBBox().x2 > this.layers.grid.getBBox().width
-            //     ) {
-            //         $upper_text.remove();
-            //     }
-            // }
+                // remove out-of-bound dates
+                if (
+                    $upper_text.getBBox().x2 > this.layers.grid.getBBox().width
+                ) {
+                    $upper_text.remove();
+                }
+            }
         }
     }
 
-    get_week_dates_to_draw() {
+    get_dates_to_draw() {
         let last_date = null;
-        const dates = this.week_dates.map((date, i) => {
+        const dates = this.dates.map((date, i) => {
             const d = this.get_date_info(date, last_date, i);
             last_date = date;
             return d;
         });
-        console.log(' ======================');
         return dates;
     }
-    // get_dates_to_draw() {
-    //     let last_date = null;
-    //     const dates = this.dates.map((date, i) => {
-    //         const d = this.get_date_info(date, last_date, i);
-    //         last_date = date;
-    //         return d;
-    //     });
-    //     return dates;
-    // }
 
     get_date_info(date, last_date, i) {
         if (!last_date) {
@@ -717,51 +679,33 @@ export default class Gantt {
                     : '',
         };
 
-        // Week
-        // this.options.step = 24 * 7;
-        // this.options.column_width = 50;
-
-        // Month
-        // this.options.step = 24 * 30;
-        // this.options.column_width = 120;
-
-        // const column_width = this.options.column_width;
-        const nbWeek = date_utils.getWeekCountByMonth(
-            date.getFullYear(),
-            date.getMonth()
-        );
-        const column_width = 24;
-        console.log('weeks = ', nbWeek);
         const base_pos = {
-            x: i * column_width,
+            x: i * this.options.column_width,
             lower_y: this.options.header_height,
             upper_y: this.options.header_height - 25,
         };
 
         const x_pos = {
-            'Quarter Day_lower': (column_width * 4) / 2,
+            'Quarter Day_lower': (this.options.column_width * 4) / 2,
             'Quarter Day_upper': 0,
-            'Half Day_lower': (column_width * 2) / 2,
+            'Half Day_lower': (this.options.column_width * 2) / 2,
             'Half Day_upper': 0,
-            Day_lower: column_width / 2,
-            Day_upper: (column_width * 30) / 2,
+            Day_lower: this.options.column_width / 2,
+            Day_upper: (this.options.column_width * 30) / 2,
             Week_lower: 0,
-            Week_upper: (column_width * 4) / 2,
-            Month_lower: column_width / 2,
-            Month_upper: (column_width * 12) / 2,
-            Year_lower: column_width / 2,
-            Year_upper: (column_width * 30) / 2,
+            Week_upper: (this.options.column_width * 4) / 2,
+            Month_lower: this.options.column_width / 2,
+            Month_upper: (this.options.column_width * 12) / 2,
+            Year_lower: this.options.column_width / 2,
+            Year_upper: (this.options.column_width * 30) / 2,
         };
 
-        // const view_mode = this.options.view_mode;
-        const view_mode = 'Week';
-
         return {
-            upper_text: date_text[`${view_mode}_upper`],
-            lower_text: date_text[`${view_mode}_lower`],
-            upper_x: base_pos.x + x_pos[`${view_mode}_upper`],
+            upper_text: date_text[`${this.options.view_mode}_upper`],
+            lower_text: date_text[`${this.options.view_mode}_lower`],
+            upper_x: base_pos.x + x_pos[`${this.options.view_mode}_upper`],
             upper_y: base_pos.upper_y,
-            lower_x: base_pos.x + x_pos[`${view_mode}_lower`],
+            lower_x: base_pos.x + x_pos[`${this.options.view_mode}_lower`],
             lower_y: base_pos.lower_y,
         };
     }

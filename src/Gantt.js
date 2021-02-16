@@ -13,7 +13,7 @@ export default class Gantt extends Component {
 
     componentDidMount() {
         this.setState({
-            viewMode: 'Week', // parseInt(Math.random() * 5 + 1) - 1
+            viewMode: 'Month', // parseInt(Math.random() * 5 + 1) - 1
             tasks: this.getTasks().slice(
                 0,
                 parseInt(
